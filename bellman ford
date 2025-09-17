@@ -1,0 +1,124 @@
+#include <bits/stdc++.h>
+using namespace std;
+struct Edge {
+    int from, to;
+    double cost;
+    Edge(int f, int t, double c) : from(f), to(t), cost(c) {}
+};
+vector<double> bellmanFord(const vector<Edge>& edges, int V, int src) {
+    double POS_INF = numeric_limits<double>::infinity();
+    double NEG_INF = -numeric_limits<double>::infinity();
+    vector<double> dist(V, POS_INF);
+    dist[src] = 0.0;
+    bool changed = true;
+    for (int iter = 0; iter < V - 1 && changed; ++iter) {
+        changed = false;
+        for (const Edge &e : edges) {
+            int u = e.from, v = e.to;
+            double w = e.cost;
+            if (isinf(dist[u]) && dist[u] < 0) {
+                if (!(isinf(dist[v]) && dist[v] < 0)) {
+                    dist[v] = NEG_INF;
+                    changed = true;
+                }
+            }
+            else if (!(isinf(dist[u]) && dist[u] > 0)) {
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    changed = true;
+                }
+            }
+        }
+    }
+    bool any = true;
+    for (int iter = 0; iter < V - 1 && any; ++iter) {
+        any = false;
+        for (const Edge &e : edges) {
+            int u = e.from, v = e.to;
+            double w = e.cost;
+            if (isinf(dist[u]) && dist[u] < 0) {
+                if (!(isinf(dist[v]) && dist[v] < 0)) {
+                    dist[v] = NEG_INF;
+                    any = true;
+                }
+            } else if (!(isinf(dist[u]) && dist[u] > 0)) {
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = NEG_INF;
+                    any = true;
+                }
+            }
+        }
+    }
+    return dist;
+}
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    cout << "Enter number of vertices V (0..V-1): ";
+    int V;
+    if (!(cin >> V) || V <= 0) {
+        cerr << "Invalid number of vertices.\n";
+        return 1;
+    }
+    cout << "Enter number of edges E: ";
+    int E;
+    if (!(cin >> E) || E < 0) {
+        cerr << "Invalid number of edges.\n";
+        return 1;
+    }
+    vector<Edge> edges;
+    edges.reserve(E);
+    vector<vector<pair<int,double>>> adj(V);
+    cout << "Enter each edge as: from to weight  (vertices 0 .. " << V-1 << ")\n";
+    for (int i = 0; i < E; ++i) {
+        int u, v;
+        double w;
+        cin >> u >> v >> w;
+        if (!cin) {
+            cerr << "Invalid edge input. Exiting.\n";
+            return 1;
+        }
+        if (u < 0 || u >= V || v < 0 || v >= V) {
+            cerr << "Skipping invalid edge endpoints: " << u << " -> " << v << "\n";
+            continue;
+        }
+        edges.emplace_back(u, v, w);
+        adj[u].push_back({v, w});
+    }
+
+    cout << "Enter source vertex index: ";
+    int src;
+    cin >> src;
+    if (!cin || src < 0 || src >= V) {
+        cerr << "Invalid source index.\n";
+        return 1;
+    }
+    vector<double> dist = bellmanFord(edges, V, src);
+    cout << "\nAdjacency summary (node, [dest nodes], [weights]):\n";
+    cout.setf(std::ios::fixed);
+    cout << setprecision(2);
+    for (int u = 0; u < V; ++u) {
+        cout << "(" << u << ", [";
+        for (size_t j = 0; j < adj[u].size(); ++j) {
+            cout << adj[u][j].first;
+            if (j + 1 < adj[u].size()) cout << ", ";
+        }
+        cout << "], [";
+        for (size_t j = 0; j < adj[u].size(); ++j) {
+            cout << adj[u][j].second;
+            if (j + 1 < adj[u].size()) cout << ", ";
+        }
+        cout << "])\n";
+    }
+    cout << "\nDistances from source " << src << ":\n";
+    for (int i = 0; i < V; ++i) {
+        if (isinf(dist[i]) && dist[i] > 0) {
+            cout << "Node " << i << ": INF (unreachable)\n";
+        } else if (isinf(dist[i]) && dist[i] < 0) {
+            cout << "Node " << i << ": -INF (reachable via negative cycle)\n";
+        } else {
+            cout << "Node " << i << ": " << dist[i] << "\n";
+        }
+    }
+    return 0;
+}
