@@ -1,0 +1,140 @@
+#include <bits/stdc++.h>
+using namespace std;
+int parseIntOrDefault(const string &s, int def) {
+    if (s.empty()) return def;
+    try {
+        size_t pos;
+        int x = stoi(s, &pos);
+        if (pos != s.size()) return def;
+        return x;
+    } catch (...) { return def; }
+}
+double parseDoubleOrDefault(const string &s, double def) {
+    if (s.empty()) return def;
+    try {
+        size_t pos;
+        double x = stod(s, &pos);
+        if (pos != s.size()) return def;
+        return x;
+    } catch (...) { return def; }
+}
+struct Edge {
+    int from, to;
+    double cost;
+    Edge(int f=0, int t=0, double c=0.0): from(f), to(t), cost(c) {}
+};
+int main() {
+    cout << "=== Random graph generator (vertices, edges, weights) ===\n";
+    cout << "Press Enter to accept defaults shown in [brackets].\n";
+    string line;
+    cout << "Random seed (unsigned integer) [random]: ";
+    getline(cin, line);
+    unsigned long long seed;
+    if (line.empty()) {
+        random_device rd;
+        seed = (unsigned long long)rd() ^ (unsigned long long)chrono::high_resolution_clock::now().time_since_epoch().count();
+    } else {
+        try { seed = stoull(line); } catch(...) { seed = 0; }
+    }
+    mt19937_64 rng(seed);
+    cout << "Min vertices [5]: ";
+    getline(cin, line);
+    int minV = max(2, parseIntOrDefault(line, 5));
+    cout << "Max vertices [20]: ";
+    getline(cin, line);
+    int maxV = max(minV, parseIntOrDefault(line, 20));
+    cout << "Min edges [auto -> V-1]: ";
+    getline(cin, line);
+    int minE_input = parseIntOrDefault(line, -1);
+    cout << "Max edges [auto -> V*(V-1)]: ";
+    getline(cin, line);
+    int maxE_input = parseIntOrDefault(line, -1);
+    cout << "Min weight (integer) [-10]: ";
+    getline(cin, line);
+    int wMin = parseIntOrDefault(line, -10);
+    cout << "Max weight (integer) [20]: ";
+    getline(cin, line);
+    int wMax = parseIntOrDefault(line, 20);
+    cout << "Allow negative weights? (y/n) [y]: ";
+    getline(cin, line);
+    bool allowNeg = true;
+    if (!line.empty() && (line[0]=='n' || line[0]=='N')) allowNeg = false;
+    cout << "Inject a negative cycle? (y/n) [n]: ";
+    getline(cin, line);
+    bool injectNegCycle = false;
+    if (!line.empty() && (line[0]=='y' || line[0]=='Y')) injectNegCycle = true;
+    cout << "Generate how many graphs? [1]: ";
+    getline(cin, line);
+    int graphs = max(1, parseIntOrDefault(line, 1));
+    uniform_int_distribution<int> pickV(minV, maxV);
+    uniform_int_distribution<int> weightDist(wMin, wMax);
+    cout << "\nUsing seed: " << seed << "\n\n";
+    for (int g = 1; g <= graphs; ++g) {
+        cout << "----- Graph " << g << " -----\n";
+        int V = pickV(rng);
+        int maxPossible = V * (V - 1);
+        int minE = (minE_input < 0 ? max(1, V - 1) : minE_input);
+        int maxE = (maxE_input < 0 ? maxPossible : maxE_input);
+        minE = min(minE, maxPossible);
+        maxE = min(maxE, maxPossible);
+        if (minE > maxE) swap(minE, maxE);
+        uniform_int_distribution<int> pickE(minE, maxE);
+        int E = pickE(rng);
+        unordered_set<unsigned long long> used;
+        vector<Edge> edges;
+        edges.reserve(E);
+        if (injectNegCycle) {
+            int k = min(V, max(2, 2 + int(rng() % min(5, V))));
+            vector<int> perm(V);
+            iota(perm.begin(), perm.end(), 0);
+            shuffle(perm.begin(), perm.end(), rng);
+            for (int i = 0; i < k; ++i) {
+                int u = perm[i];
+                int v = perm[(i+1)%k];
+                unsigned long long key = ( (unsigned long long)u << 32 ) | (unsigned long long)(unsigned int)v;
+                if (used.insert(key).second) edges.emplace_back(u, v, -1.0);
+            }
+            if ((int)edges.size() > E) E = edges.size();
+        }
+        while ((int)edges.size() < E) {
+            int u = int(rng() % V);
+            int v = int(rng() % V);
+            if (u == v) continue; // skip self-loops
+            unsigned long long key = ( (unsigned long long)u << 32 ) | (unsigned long long)(unsigned int)v;
+            if (used.count(key)) continue;
+            used.insert(key);
+            int w = weightDist(rng);
+            if (!allowNeg && w < 0) w = abs(w);
+            edges.emplace_back(u, v, (double)w);
+        }
+        vector<vector<pair<int,double>>> adj(V);
+        for (const auto &e : edges) adj[e.from].push_back({e.to, e.cost});
+        int src = int(rng() % V);
+        cout << "Vertices: " << V << ", Edges: " << edges.size() << ", (random) Source: " << src << "\n";
+        cout << "Edge list (from to weight):\n";
+        cout.setf(std::ios::fixed);
+        cout << setprecision(2);
+        for (const auto &e : edges) {
+            cout << e.from << " " << e.to << " " << e.cost << "\n";
+        }
+        cout << "\nAdjacency (node, [dests], [weights]):\n";
+        for (int u = 0; u < V; ++u) {
+            cout << "(" << u << ", [";
+            for (size_t j = 0; j < adj[u].size(); ++j) {
+                cout << adj[u][j].first;
+                if (j + 1 < adj[u].size()) cout << ", ";
+            }
+            cout << "], [";
+            for (size_t j = 0; j < adj[u].size(); ++j) {
+                cout << adj[u][j].second;
+                if (j + 1 < adj[u].size()) cout << ", ";
+            }
+            cout << "])\n";
+        }
+        cout << "\n";
+    }
+    cout << "Generation complete.\n";
+    return 0;
+}
+
+
