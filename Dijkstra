@@ -1,0 +1,65 @@
+#include <bits/stdc++.h>
+using namespace std;
+vector<long long> dijkstra(int V, const vector<array<int,3>>& edges, int src, bool directed=false){
+    const long long INF = (long long)1e18;
+    vector<vector<pair<int,int>>> adj(V);
+    for (size_t i = 0; i < edges.size(); i++) {
+        int u = edges[i][0], v = edges[i][1], w = edges[i][2];
+        adj[u].push_back(make_pair(v,w));
+        if (!directed) adj[v].push_back(make_pair(u,w));
+    }
+    vector<long long> dist(V, INF);
+    priority_queue<pair<long long,int>, vector<pair<long long,int>>, greater<pair<long long,int>>> pq;
+    dist[src] = 0;
+    pq.push(make_pair(0, src));
+    while (!pq.empty()) {
+        pair<long long,int> top = pq.top();
+        pq.pop();
+        long long d = top.first;
+        int u = top.second;
+        if (d > dist[u]) continue;
+        for (size_t i = 0; i < adj[u].size(); i++) {
+            int v = adj[u][i].first;
+            int w = adj[u][i].second;
+            if (dist[v] > dist[u] + (long long)w) {
+                dist[v] = dist[u] + (long long)w;
+                pq.push(make_pair(dist[v], v));
+            }
+        }
+    }
+    return dist;
+}
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int V, E;
+    cin >> V >> E;
+    vector<array<int,3>> edges;
+    edges.reserve(E);
+    int maxIndexSeen = -1;
+    for (int i = 0; i < E; ++i) {
+        int u,v,w;
+        cin >> u >> v >> w;
+        edges.push_back({u, v, w});
+        maxIndexSeen = max(maxIndexSeen, max(u,v));
+    }
+    int src;
+    cin >> src;
+    maxIndexSeen = max(maxIndexSeen, src);
+    if (maxIndexSeen >= V) {
+        for (size_t i = 0; i < edges.size(); i++) {
+            edges[i][0]--;
+            edges[i][1]--;
+        }
+        src--;
+    }
+    bool directed = false;
+    vector<long long> dist = dijkstra(V, edges, src, directed);
+    for (int i = 0; i < V; ++i) {
+        if (dist[i] >= (long long)1e17) cout << -1;
+        else cout << dist[i];
+        if (i+1 < V) cout << " ";
+    }
+    cout << "\n";
+    return 0;
+}
