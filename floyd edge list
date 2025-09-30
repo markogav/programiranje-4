@@ -1,0 +1,60 @@
+#include <iostream>
+#include <vector>
+#define ll long long
+using namespace std;
+const ll INF = (ll)1e10;
+struct Edge {
+    int o,d;
+    ll tez;
+};
+void floydWarshall(int vert, const vector<Edge>& edges, vector<vector<ll>>& dist) {
+    for (int i = 0; i < vert; ++i)
+        for (int j = 0; j < vert; ++j)
+            dist[i][j] = (i == j ? 0 : INF);
+    for (auto e : edges) {
+        if (e.tez < dist[e.o][e.d])
+            dist[e.o][e.d] = e.tez;
+        if (e.tez < dist[e.d][e.o])
+        dist[e.d][e.o] = e.tez;
+    }
+    for (int k = 0; k < vert; ++k) {
+        for (int i = 0; i < vert; ++i) {
+            if (dist[i][k] == INF) continue;
+            for (int j = 0; j < vert; ++j) {
+                if (dist[k][j] == INF) continue;
+                ll wei = dist[i][k] + dist[k][j];
+                if (wei < dist[i][j])
+                    dist[i][j] = wei;
+            }
+        }
+    }
+}
+int main() {
+    int vert, edg;
+    cin >> vert >> edg;
+    vector<Edge> edges(edg);
+    for (int i=0;i<edg;++i) {
+        int o, d;
+        ll w;
+        cin>>o>>d>> w;
+        o--; d--;
+        edges[i] = {o, d, w};
+    }
+    vector<vector<ll>> dist(vert, vector<ll>(vert, INF));
+    floydWarshall(vert, edges, dist);
+    for (int i=1;i<= vert; ++i) 
+        cout<<i<<" ";
+    cout << "\n\n";
+    for (int i = 0; i < vert; ++i) {
+        for (int j = 0; j < vert; ++j) {
+            if (dist[i][j] == INF) 
+            cout<<"INF";
+            else cout<<dist[i][j];
+            if (j+1<vert) 
+            cout<<' ';
+        }
+        cout<<'\n';
+    }
+
+    return 0;
+}
