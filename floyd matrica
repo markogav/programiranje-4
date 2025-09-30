@@ -1,0 +1,55 @@
+#include <iostream>
+#include <vector>
+#define ll long long
+using namespace std;
+const ll INF = (ll)1e10;
+void floydWarshall(vector<vector<ll>> &dist) {
+    int vert = (int)dist.size();
+    for (int k = 0; k < vert; ++k) {
+        for (int i = 0; i < vert; ++i) {
+            if (dist[i][k] == INF) continue;
+            for (int j = 0; j < vert; ++j) {
+                if (dist[k][j] == INF) continue;
+                ll wei = dist[i][k] + dist[k][j];
+                if (wei < dist[i][j])
+                    dist[i][j] = wei;
+            }
+        }
+    }
+}
+int main() {
+    int vert, edg;
+    cin>>vert>>edg;
+    vector<vector<ll>> dist(vert, vector<ll>(vert, INF));
+    for (int i = 0;i<vert; ++i)
+        dist[i][i] = 0;
+    for (int e = 0; e < edg; ++e) {
+        int o,d;
+        ll tez;
+        cin >> o >> d >> tez;
+        o--;
+        d--;
+        if (tez < dist[o][d])
+        dist[o][d] = tez;
+        if (tez < dist[d][o])
+        dist[d][o] = tez;
+    }
+    cout<<'\n';
+    floydWarshall(dist);
+    for(int i=1;i<=vert;++i)
+    {
+        cout<<i<<" ";
+    }
+    cout<<'\n';
+    cout<<'\n';
+    for (int i = 0; i < vert; ++i) {
+        for (int j = 0; j < vert; ++j) {
+            if (dist[i][j] == INF) cout << "INF";
+            else cout << dist[i][j];
+            if (j+1<vert)
+                cout<<' ';
+        }
+        cout<<'\n';
+    }
+    return 0;
+}
