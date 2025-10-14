@@ -56,7 +56,7 @@ int maxflow(int s, int t) {
     }
     return flow;
 }
-void smenet_flow(int s, int t) {
+void smenet_flow(int s, int t,int result) {
     vector<vector<int>> orgcap = cap;
     vector<int> vis(n + 1, 0);
     queue<int> q;
@@ -85,12 +85,7 @@ void smenet_flow(int s, int t) {
         }
     }
     cout <<bu << " -> " << bv<<" " << bcap << "\n";
-    cap = orgcap;
-    int orgflow = maxflow(s, t);
-    cap = orgcap;
-    cap[bu][bv] = 0;
-    int rdflow = maxflow(s, t);
-    cout <<rdflow<< "\n";
+    cout<<result-bcap;
 }
 int main() {
     int m;
@@ -107,6 +102,6 @@ int main() {
     int s=1, t=n;
     int result = maxflow(s, t);
     cout << "max flow = " << result << "\n";
-    smenet_flow(s,t);
+    smenet_flow(s,t,result);
     return 0;
 }
