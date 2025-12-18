@@ -1,0 +1,114 @@
+#include <bits/stdc++.h>
+using namespace std;
+class GermanString {
+    uint32_t len;//dolzina na stringot
+    char data[12];//short stringot
+    bool isShort() const {
+        return len <= 12;//proverka za dali e short
+    }
+    char* getPtr() const {
+        char* p;//pointerot
+        memcpy(&p, data + 4, sizeof(p));//copiranje na datata vo pointerot
+        return p;
+    }
+    void setPtr(char* p) {
+        memcpy(data + 4, &p, sizeof(p));//obratno od getPtr,ova go pravime za prefiksot
+    }
+public:
+    GermanString() : len(0) {
+        memset(data, 0, 12);//go mestime data da nema gjubre za da garantirame stringot ni e prazen
+    }
+    GermanString(const string& s) {
+        len = s.size();
+
+        if (isShort()) {
+            memcpy(data, s.data(), len);//kopiranje od pointeri vo stringovi
+            if (len < 12)
+                memset(data + len, 0, 12 - len);//ako e kratok stringot
+        } else {
+            memcpy(data, s.data(), 4);//cuva prefiks
+            char* heap = new char[len];//pravi mesto za heap memory
+            memcpy(heap, s.data(), len);//kopiranje na cell string vo heap
+            setPtr(heap);//go cuvame stringot vo heapot
+        }
+    }
+    GermanString(const GermanString& o) {//copy konstruktor se e istoto kako prethodnoto
+        len = o.len;
+        if (isShort()) {
+            memcpy(data, o.data, 12);
+        } else {
+            memcpy(data, o.data, 4);
+            char* heap = new char[len];
+            memcpy(heap, o.getPtr(), len);
+            setPtr(heap);
+        }
+    }
+    GermanString& operator=(const GermanString& o) {//kopiranje na objekt sto vekje postoi
+        if (this == &o) return *this;
+        if (!isShort())
+            delete[] getPtr();
+        len = o.len;
+        if (isShort()) {
+            memcpy(data, o.data, 12);
+        } else {
+            memcpy(data, o.data, 4);
+            char* heap = new char[len];
+            memcpy(heap, o.getPtr(), len);
+            setPtr(heap);
+        }
+        return *this;
+    }
+    ~GermanString() {//destruktor za kratenje memorija
+        if (!isShort())
+            delete[] getPtr();
+    }
+    string makeString() const {
+        if (isShort())
+            return string(data, len);//go pravi short string
+        return string(getPtr(), len);//go pravi dolgiot string
+    }
+    int getLen() const {
+        return len;//vrati ja dolzinata na stringot
+    }
+    char& operator[](int index) {// za da mozeme da smenuvame stringot
+        return isShort() ? data[index] : getPtr()[index];
+    }
+    char at(int index) const {// za da moze da go citame stringot(zatoa e const a drugoto ne)
+        return isShort() ? data[index] : getPtr()[index];
+    }
+    bool operator==(const GermanString& o) const {
+        if (len != o.len) return false;
+        if (memcmp(data, o.data, 4) != 0) return false;
+        if (isShort())
+            return memcmp(data, o.data, len) == 0;
+        return memcmp(getPtr(), o.getPtr(), len) == 0;
+    }
+    GermanString operator+(const GermanString& o) const {// za da mozeme da sobereme dva stringa
+        return GermanString(makeString() + o.makeString());
+    }
+    bool empty() const {// za ako e prazno
+        return len == 0;
+    }
+    void clear() {//za brishenje
+        if (!isShort())
+            delete[] getPtr();
+        len = 0;
+        memset(data, 0, 12);
+    }
+    void print() const {//output
+        cout << makeString();
+    }
+};
+int main() {
+    GermanString a("proba");
+    GermanString b(" mnogu podolga proba za da vidime dali raboti");
+    GermanString c = a + b;
+    a.print(); cout << '\n';
+    b.print(); cout << '\n';
+    c.print(); cout << '\n';
+    GermanString d = b;
+    cout << (b == d) << '\n';
+    d.clear();
+    cout << d.empty() << '\n';
+    return 0;
+}
