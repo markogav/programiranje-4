@@ -1,0 +1,65 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+const ll MOD = 1000000007LL;
+const ll P = 31LL;
+ll pw[5005];
+ll h[5005];
+ll hr[5005];
+int n;
+ll get_hash(ll* H, int l, int r) {
+    if (l > r) return 0;
+    ll res = H[r];
+    if (l > 0) {
+        res = (res - (H[l-1] * pw[r-l+1]) % MOD + MOD) % MOD;
+    }
+    return res;
+}
+bool is_pal(int l, int r) {
+    int rl = n - 1 - r;
+    int rr = n - 1 - l;
+    return get_hash(h, l, r) == get_hash(hr, rl, rr);
+}
+int main() {
+    string s;
+    cin >> s;
+    n = s.size();
+    pw[0] = 1;
+    for (int i = 1; i <= n; i++)
+        pw[i] = (pw[i-1] * P) % MOD;
+    for (int i = 0; i < n; i++) {
+        ll val = s[i] - 'a' + 1;
+        if (i == 0) h[i] = val % MOD;
+        else h[i] = (h[i-1] * P + val) % MOD;
+    }
+    string rs = s;
+    reverse(rs.begin(), rs.end());
+    for (int i = 0; i < n; i++) {
+        ll val = rs[i] - 'a' + 1;
+        if (i == 0) hr[i] = val % MOD;
+        else hr[i] = (hr[i-1] * P + val) % MOD;
+    }
+    vector<vector<int>> dp(n, vector<int>(n, 0));
+    vector<ll> cnt(n+1, 0);
+    for (int len = 1; len <= n; len++) {
+        for (int l = 0; l + len - 1 < n; l++) {
+            int r = l + len - 1;
+            if (!is_pal(l, r)) continue;
+            dp[l][r] = 1;
+            int half = len / 2;
+            if (half > 0) {
+                int L1 = l, R1 = l + half - 1;
+                int L2 = r - half + 1, R2 = r;
+                if (get_hash(h, L1, R1) == get_hash(h, L2, R2)) {
+                    dp[l][r] = dp[L1][R1] + 1;
+                }
+            }
+            cnt[ dp[l][r] ]++;
+        }
+    }
+    for (int k = n - 1; k >= 1; k--)
+        cnt[k] += cnt[k+1];
+    for (int k = 1; k <= n; k++) {
+        cout << cnt[k] << " ";
+    }
+}
