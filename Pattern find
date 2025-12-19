@@ -1,0 +1,46 @@
+#include <bits/stdc++.h>
+using namespace std;
+vector<int> rabin_karp(const string &pattern, const string &text) {
+    const long long p = 31;
+    const long long m = 1e9 + 9;
+    int S = pattern.size();
+    int T = text.size();
+    vector<long long> p_pow(max(S, T));
+    p_pow[0] = 1;
+    for (int i = 1; i < (int)p_pow.size(); i++)
+        p_pow[i] = (p_pow[i - 1] * p) % m;
+    vector<long long> h(T + 1);
+    for (int i = 0; i < T; i++)
+        h[i + 1] = (h[i] + (text[i] - 'a' + 1) * p_pow[i]) % m;
+    long long h_s = 0;
+    for (int i = 0; i < S; i++)
+        h_s = (h_s + (pattern[i] - 'a' + 1) * p_pow[i]) % m;
+    vector<int> occurrences;
+    for (int i = 0; i + S - 1 < T; i++) {
+        long long cur_h = (h[i + S] + m - h[i]) % m;
+        if (cur_h == h_s * p_pow[i] % m)
+            occurrences.push_back(i + 1); 
+    }
+    return occurrences;
+}
+int main() {
+    int T;
+    cin >> T;
+    for (int tc = 0; tc < T; tc++) {
+        string s, t;
+        cin >> s >> t;
+        vector<int> result = rabin_karp(t, s);
+        if (result.empty()) {
+            cout << "Not Found\n";
+        } else {
+            cout << result.size() << "\n";
+            for (int i = 0; i < result.size(); i++) {
+                cout << result[i];
+                if (i + 1 < result.size()) cout << " ";
+            }
+            cout << "\n";
+        }
+        if (tc < T - 1) cout << "\n"; 
+    }
+    return 0;
+}
