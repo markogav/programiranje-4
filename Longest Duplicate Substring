@@ -1,0 +1,51 @@
+class Solution {
+public:
+    const unsigned long long B = 1315423911ULL;
+    vector<unsigned long long> h, p;
+    string s;
+    int n;
+    unsigned long long getHash(int l, int r) {
+        return h[r] - h[l] * p[r - l];
+    }
+    int check(int L) {
+        if (L == 0) return -1;
+        unordered_map<unsigned long long, vector<int>> seen;
+        for (int i = 0; i + L <= n; i++) {
+            unsigned long long cur = getHash(i, i + L);
+            if (seen.count(cur)) {
+                for (int prev : seen[cur]) {
+                    if (s.compare(prev, L, s, i, L) == 0)
+                        return i;
+                }
+            }
+            seen[cur].push_back(i);
+        }
+        return -1;
+    }
+    string longestDupSubstring(string str) {
+        s = str;
+        n = s.size();
+        h.assign(n + 1, 0);
+        p.assign(n + 1, 0);
+        p[0] = 1;
+        for (int i = 0; i < n; i++) {
+            h[i + 1] = h[i] * B + s[i];
+            p[i + 1] = p[i] * B;
+        }
+        int left = 1, right = n - 1;
+        int bestLen = 0, bestPos = -1;
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            int pos = check(mid);
+            if (pos != -1) {
+                bestLen = mid;
+                bestPos = pos;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        if (bestLen == 0) return "";
+        return s.substr(bestPos, bestLen);
+    }
+};
