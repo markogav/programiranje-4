@@ -1,0 +1,68 @@
+#include <bits/stdc++.h>
+#include <windows.h>
+using namespace std;
+struct TrieNode {
+    unordered_map<string, TrieNode*> next;
+    bool endWord;
+
+    TrieNode() : endWord(false) {}
+};
+vector<string> splitUTF8(const string& s) {
+    vector<string> res;
+    for (size_t i = 0; i < s.size();) {
+        unsigned char c = s[i];
+        int len = 1;
+        if ((c & 0xE0) == 0xC0) len = 2;
+        else if ((c & 0xF0) == 0xE0) len = 3;
+        else if ((c & 0xF8) == 0xF0) len = 4;
+        res.push_back(s.substr(i, len));
+        i += len;
+    }
+    return res;
+}
+void insertWord(TrieNode* root, const string& word) {
+    TrieNode* cur = root;
+    vector<string> letters = splitUTF8(word);
+
+    for (size_t i = 0; i < letters.size(); i++) {
+        if (cur->next.find(letters[i]) == cur->next.end())
+            cur->next[letters[i]] = new TrieNode();
+        cur = cur->next[letters[i]];
+    }
+    cur->endWord = true;
+}
+bool searchWord(TrieNode* root, const string& word) {
+    TrieNode* cur = root;
+    vector<string> letters = splitUTF8(word);
+
+    for (size_t i = 0; i < letters.size(); i++) {
+        if (cur->next.find(letters[i]) == cur->next.end())
+            return false;
+        cur = cur->next[letters[i]];
+    }
+    return cur->endWord;
+}
+void dfsPrint(TrieNode* node, string current) {
+    if (node->endWord)
+        cout << current << "\n";
+
+    for (auto it = node->next.begin(); it != node->next.end(); ++it) {
+        dfsPrint(it->second, current + it->first);
+    }
+}
+void printTrie(TrieNode* root) {
+    dfsPrint(root, "");
+}
+int main() {
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+    TrieNode* root = new TrieNode();
+    insertWord(root, "пример");
+    insertWord(root, "примена");
+    insertWord(root, "приватно");
+    insertWord(root, "школо");
+    printTrie(root);
+    cout << searchWord(root, "пример") << "\n";
+    cout << searchWord(root, "примерa") << "\n";
+    return 0;
+}
