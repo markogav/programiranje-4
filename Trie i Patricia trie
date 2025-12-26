@@ -1,0 +1,129 @@
+#include <bits/stdc++.h>
+using namespace std;
+struct TrieNode {
+    TrieNode* next[26];
+    bool endWord;
+    TrieNode() {
+        endWord = false;
+        for (int i = 0; i < 26; i++)
+            next[i] = nullptr;
+    }
+};
+struct PatriciaNode {
+    string label;
+    bool endWord;
+    vector<PatriciaNode*> child;
+    PatriciaNode(string s = "") {
+        label = s;
+        endWord = false;
+    }
+};
+int countChildren(TrieNode* node,int &idx) {
+    int cnt = 0;
+    for (int i = 0;i<26;i++) {
+        if (node->next[i]) {
+            cnt++;
+            idx = i;
+        }
+    }
+    return cnt;
+}
+void insertWord(TrieNode* root,const string &s) {
+    TrieNode* cur = root;
+    for (char c : s) {
+        int idx = c - 'a';
+        if (cur->next[idx] == nullptr)
+            cur->next[idx] = new TrieNode();
+        cur = cur->next[idx];
+    }
+    cur->endWord = true;
+}
+bool searchWord(TrieNode* root,const string &s) {
+    TrieNode* cur = root;
+    for (char c : s) {
+        int idx = c - 'a';
+        if (cur->next[idx] == nullptr)
+            return false;
+        cur = cur->next[idx];
+    }
+    return cur->endWord;
+}
+PatriciaNode* convert_to_Patricia(TrieNode* node) {
+    if (!node) return nullptr;
+    PatriciaNode* pnode = new PatriciaNode();
+    pnode->endWord = node->endWord;
+    for (int i = 0; i < 26; i++) {
+        if (node->next[i]) {
+            TrieNode* cur = node->next[i];
+            string label = "";
+            label.push_back('a' + i);
+            int nextIdx;
+            while (!cur->endWord && countChildren(cur, nextIdx) == 1) {
+                label.push_back('a' + nextIdx);
+                cur = cur->next[nextIdx];
+            }
+            PatriciaNode* child = convert_to_Patricia(cur);
+            child->label = label;
+            pnode->child.push_back(child);
+        }
+    }
+    return pnode;
+}
+bool search_Patricia(PatriciaNode* root,string word) {
+    if (!root) return false;
+    for (PatriciaNode* ch : root->child) {
+        if (word.rfind(ch->label, 0) == 0) {
+            string rest = word.substr(ch->label.size());
+            if (rest.empty())
+                return ch->endWord;
+            return search_Patricia(ch, rest);
+        }
+    }
+    return false;
+}
+void dfsPrint(TrieNode* node,string &buffer) {
+    if (!node) return;
+    if (node->endWord) {
+        cout << buffer << "\n";
+    }
+    for (int i = 0; i < 26; i++) {
+        if (node->next[i]) {
+            buffer.push_back(char('a' + i));
+            dfsPrint(node->next[i], buffer);
+            buffer.pop_back();
+        }
+    }
+}
+void printTrie(TrieNode* root) {
+    string buffer = "";
+    dfsPrint(root, buffer);
+}
+void print_Patricia_tree(PatriciaNode* node,string prefix) {
+    if (node->endWord)
+        cout << prefix << "\n";
+    for (PatriciaNode* ch : node->child) {
+        print_Patricia_tree(ch, prefix + ch->label);
+    }
+}
+int main() {
+    TrieNode* root = new TrieNode();
+    ifstream fin("wiki-100k.txt");
+    string line;
+    while (getline(fin, line)) {
+        if (line.empty()) continue;
+        if (line[0] == '#') continue;
+        string clean = "";
+        for (char c : line) {
+            if (c >= 'a' && c <= 'z')
+                clean.push_back(c);
+        }
+        if (!clean.empty())
+            insertWord(root, clean);
+    }
+    fin.close();
+    printTrie(root);
+    PatriciaNode* patriciaRoot = convert_to_Patricia(root);
+    print_Patricia_tree(patriciaRoot, "");
+cout << search_Patricia(patriciaRoot, "example") << "\n";
+    return 0;
+}
