@@ -1,0 +1,79 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <cmath>
+using namespace std;
+void mnozenjenamatrica(float M[4][4], float v[4], float result[4]) {
+    for (int i = 0; i < 4; i++) {
+        result[i] = 0;
+        for (int j = 0; j < 4; j++) {
+            result[i] += M[i][j] * v[j];
+        }
+    }
+}
+int main() {
+    ifstream file("monkey.obj");
+    string line;
+    vector<vector<float>> tocki;
+    while(getline(file, line)) {
+        if(line[0] == 'v' && line[1] == ' ') {
+            stringstream ss(line);
+            char v;
+            float x,y,z;
+            ss >> v >> x >> y >> z;
+            tocki.push_back({x,y,z,1});
+        }
+    }
+    float tx, ty,tz;
+    cout<<"Vnesi translacija:";
+    cin >>tx>>ty>>tz;
+    float ax, ay, az;
+    cout <<"angli na rotacija(x,y,z): ";
+    cin >>ax>>ay>>az;
+    float rx = ax * M_PI / 180;
+    float ry = ay * M_PI / 180;
+    float rz = az * M_PI / 180;
+    float sx,sy,sz;
+    cout<<"Vnesi skaliranje:";
+    cin >>sx>>sy>>sz;
+    float T[4][4] = {
+        {1,0,0,tx},
+        {0,1,0,ty},
+        {0,0,0,tz},
+        {0,0,0,1}
+    };
+    float Rx[4][4] = {
+    {1,0,0,0},
+    {0,cos(rx),-sin(rx),0},
+    {0,sin(rx),cos(rx),0},
+    {0,0,0,1}
+    };
+    float Ry[4][4] = {
+    {cos(ry),0,sin(ry),0},
+    {0,1,0,0},
+    {-sin(ry),0,cos(ry),0},
+    {0,0,0,1}
+    };
+    float Rz[4][4] = {
+    {cos(rz),-sin(rz),0,0},
+    {sin(rz),cos(rz),0,0},
+    {0,0,1,0},
+    {0,0,0,1}
+    };
+    float S[4][4] = {
+        {sx,0,0,0},
+        {0,sy,0,0},
+        {0,0,sz,0},
+        {0,0,0,1}
+    };
+    for(auto &p : tocki) {
+        float p1[4], p2[4], p3[4], p4[4], p5[4];
+    mnozenjenamatrica(T, p.data(), p1);
+    mnozenjenamatrica(Rx, p1, p2);
+    mnozenjenamatrica(Ry, p2, p3);
+    mnozenjenamatrica(Rz, p3, p4);
+    mnozenjenamatrica(S, p4, p5);
+        cout <<p5[0]<<", "<<p5[1]<<", "<<p5[2]<< endl;
+    }
+}
