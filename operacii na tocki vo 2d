@@ -4,7 +4,7 @@
 #include <vector>
 #include <cmath>
 using namespace std;
-void multiplyMatrixVector(float M[3][3], float v[3], float result[3]) {
+void mnozenjenamatrica(float M[3][3], float v[3], float result[3]) {
     for (int i = 0; i < 3; i++) {
         result[i] = 0;
         for (int j = 0; j < 3; j++) {
@@ -52,9 +52,9 @@ int main() {
     };
     for(auto &p : tocki) {
         float t1[3], t2[3], t3[3];
-        multiplyMatrixVector(T, p.data(), t1);
-        multiplyMatrixVector(R, t1, t2);
-        multiplyMatrixVector(S, t2, t3);
+        mnozenjenamatrica(T, p.data(), t1);
+        mnozenjenamatrica(R, t1, t2);
+        mnozenjenamatrica(S, t2, t3);
         cout <<t3[0]<<", "<<t3[1]<< endl;
     }
 }
