@@ -1,0 +1,60 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <cmath>
+using namespace std;
+void multiplyMatrixVector(float M[3][3], float v[3], float result[3]) {
+    for (int i = 0; i < 3; i++) {
+        result[i] = 0;
+        for (int j = 0; j < 3; j++) {
+            result[i] += M[i][j] * v[j];
+        }
+    }
+}
+int main() {
+    ifstream file("square.obj");
+    string line;
+    vector<vector<float>> tocki;
+    while(getline(file, line)) {
+        if(line[0] == 'v' && line[1] == ' ') {
+            stringstream ss(line);
+            char v;
+            float x,y,z;
+            ss >> v >> x >> y >> z;
+            tocki.push_back({x,y,1});
+        }
+    }
+    float tx, ty;
+    cout<<"Vnesi translacija:";
+    cin >> tx >> ty;
+    float agol;
+    cout<<"Vnesi agol:";
+    cin >> agol;
+    float sx, sy;
+    cout<<"Vnesi skaliranje:";
+    cin >> sx >> sy;
+    float rad = agol * M_PI / 180;
+    float T[3][3] = {
+        {1,0,tx},
+        {0,1,ty},
+        {0,0,1}
+    };
+    float R[3][3] = {
+        {cos(rad),-sin(rad),0},
+        {sin(rad),cos(rad),0},
+        {0,0,1}
+    };
+    float S[3][3] = {
+        {sx,0,0},
+        {0,sy,0},
+        {0,0,1}
+    };
+    for(auto &p : tocki) {
+        float t1[3], t2[3], t3[3];
+        multiplyMatrixVector(T, p.data(), t1);
+        multiplyMatrixVector(R, t1, t2);
+        multiplyMatrixVector(S, t2, t3);
+        cout <<t3[0]<<", "<<t3[1]<< endl;
+    }
+}
