@@ -1,0 +1,28 @@
+#include <iostream>
+#include <map>
+using namespace std;
+
+void dijkstraPrimes(int n) {
+    map<int, int> composites;
+    for (int i = 2; i <= n; i++) {
+        if (composites.find(i) == composites.end()) {
+            cout << i << " ";
+            composites[i * i] = i;
+        } else {
+            int p = composites[i];
+            composites.erase(i);
+
+            int next = i + p;
+            while (composites.find(next) != composites.end())
+                next += p;
+            composites[next] = p;
+        }
+    }
+}
+
+int main() {
+    int n;
+    cin >> n;
+    dijkstraPrimes(n);
+    return 0;
+}
