@@ -1,0 +1,110 @@
+#include <bits/stdc++.h>
+using namespace std;
+struct Point {
+    double x, y;
+};
+struct Triangle {
+    Point a, b, c;
+};
+const double EPS = 1e-9;
+bool samePoint(Point p1, Point p2) {
+    return abs(p1.x - p2.x) < EPS && abs(p1.y - p2.y) < EPS;
+}
+bool sameEdge(pair<Point, Point> e1, pair<Point, Point> e2) {
+    return (samePoint(e1.first, e2.first) && samePoint(e1.second, e2.second)) ||
+           (samePoint(e1.first, e2.second) && samePoint(e1.second, e2.first));
+}
+bool circumcircleContains(Triangle t, Point p) {
+    double ax = t.a.x - p.x;
+    double ay = t.a.y - p.y;
+    double bx = t.b.x - p.x;
+    double by = t.b.y - p.y;
+    double cx = t.c.x - p.x;
+    double cy = t.c.y - p.y;
+    double det = (ax * ax + ay * ay) * (bx * cy - cx * by)
+               - (bx * bx + by * by) * (ax * cy - cx * ay)
+               + (cx * cx + cy * cy) * (ax * by - bx * ay);
+
+    return det > EPS;
+}
+int main() {
+    int n;
+
+    if (!(cin >> n) || n < 3) return 0;
+    vector<Point> points(n);
+    double minX = 1e18, minY = 1e18, maxX = -1e18, maxY = -1e18;
+    for (int i = 0; i < n; i++) {
+        cin >> points[i].x >> points[i].y;
+        minX = min(minX, points[i].x);
+        minY = min(minY, points[i].y);
+        maxX = max(maxX, points[i].x);
+        maxY = max(maxY, points[i].y);
+    }
+    double dx = maxX - minX;
+    double dy = maxY - minY;
+    double dmax = max(dx, dy);
+    double midX = (minX + maxX) / 2.0;
+    double midY = (minY + maxY) / 2.0;
+    Point sp1 = {midX - 20 * dmax, midY - dmax};
+    Point sp2 = {midX + 20 * dmax, midY - dmax};
+    Point sp3 = {midX, midY + 20 * dmax};
+    vector<Triangle> triangulation;
+    triangulation.push_back({sp1, sp2, sp3});
+    for (auto& p : points) {
+        vector<Triangle> badTriangles;
+        for (auto& t : triangulation) {
+            if (circumcircleContains(t, p)) {
+                badTriangles.push_back(t);
+            }
+        }
+        vector<pair<Point, Point>> polygon;
+        for (int i = 0; i < badTriangles.size(); i++) {
+            pair<Point, Point> edges[3] = {{badTriangles[i].a, badTriangles[i].b},
+                                           {badTriangles[i].b, badTriangles[i].c},
+                                           {badTriangles[i].c, badTriangles[i].a}};
+            for (int e = 0; e < 3; e++) {
+                bool shared = false;
+                for (int j = 0; j < badTriangles.size(); j++) {
+                    if (i == j) continue;
+                    pair<Point, Point> otherEdges[3] = {{badTriangles[j].a, badTriangles[j].b},
+                                                        {badTriangles[j].b, badTriangles[j].c},
+                                                        {badTriangles[j].c, badTriangles[j].a}};
+                    for (int oe = 0; oe < 3; oe++) {
+                        if (sameEdge(edges[e], otherEdges[oe])) shared = true;
+                    }
+                }
+                if (!shared) polygon.push_back(edges[e]);
+            }
+        }
+        for (auto& bt : badTriangles) {
+            for (int i = 0; i < triangulation.size(); i++) {
+                if (samePoint(triangulation[i].a, bt.a) &&
+                    samePoint(triangulation[i].b, bt.b) &&
+                    samePoint(triangulation[i].c, bt.c)) {
+                    triangulation.erase(triangulation.begin() + i);
+                    break;
+                }
+            }
+        }
+        for (auto& edge : polygon) {
+            triangulation.push_back({edge.first, edge.second, p});
+        }
+    }
+    for (int i = 0; i < triangulation.size(); i++) {
+        Triangle t = triangulation[i];
+        if (samePoint(t.a, sp1) || samePoint(t.a, sp2) || samePoint(t.a, sp3) ||
+            samePoint(t.b, sp1) || samePoint(t.b, sp2) || samePoint(t.b, sp3) ||
+            samePoint(t.c, sp1) || samePoint(t.c, sp2) || samePoint(t.c, sp3)) {
+            triangulation.erase(triangulation.begin() + i);
+            i--;
+        }
+    }
+    cout << "\nFound " << triangulation.size() << " triangles:\n";
+    for (auto& t : triangulation) {
+        cout << "(" << t.a.x << "," << t.a.y << ") - "
+             << "(" << t.b.x << "," << t.b.y << ") - "
+             << "(" << t.c.x << "," << t.c.y << ")\n";
+    }
+
+    return 0;
+}
