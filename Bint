@@ -1,5 +1,3 @@
-// C++ program to implement
-// the above approach (trimmed to only +, -, *, /, %)
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -7,29 +5,21 @@ using namespace std;
 class BigInt{
     string digits;
 public:
-
-    //Constructors:
     BigInt(unsigned long long n = 0);
     BigInt(string &);
     BigInt(const char *);
     BigInt(BigInt &);
 
-    //Helper Functions:
     friend bool Null(const BigInt &);
     friend int Length(const BigInt &);
 
-               /* * * * Operator Overloading * * * */
-
-    //Direct assignment
     BigInt &operator=(const BigInt &);
 
-    //Addition and Subtraction
     friend BigInt &operator+=(BigInt &, const BigInt &);
     friend BigInt operator+(const BigInt &, const BigInt &);
     friend BigInt operator-(const BigInt &, const BigInt &);
     friend BigInt &operator-=(BigInt &, const BigInt &);
 
-    //Comparison operators
     friend bool operator==(const BigInt &, const BigInt &);
     friend bool operator!=(const BigInt &, const BigInt &);
 
@@ -38,13 +28,11 @@ public:
     friend bool operator<(const BigInt &, const BigInt &);
     friend bool operator<=(const BigInt &, const BigInt &);
 
-    //Multiplication and Division
     friend BigInt &operator*=(BigInt &, const BigInt &);
     friend BigInt operator*(const BigInt &, const BigInt &);
     friend BigInt &operator/=(BigInt &, const BigInt &);
     friend BigInt operator/(const BigInt &, const BigInt &);
 
-    //Modulo
     friend BigInt operator%(const BigInt &, const BigInt &);
     friend BigInt &operator%=(BigInt &, const BigInt &);
 
